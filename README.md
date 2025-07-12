@@ -14,7 +14,7 @@ Interactive travel survey form demonstrating:
 - Multiple event listener implementations
 
 ## Files
-- `js2.html` - Main survey form
+- `ashvin_patel_final_project.html` - Main survey form
 - `forms.css` - Stylesheet
 - `1.gif` to `8.gif` - Zoom background images
 
@@ -26,4 +26,4 @@ Interactive travel survey form demonstrating:
 ✅ DHTML interactions  
 
 ## How to Run
-Open `js2.html` in a web browser.
+Open `ashvin_patel_final_project.html` in a web browser.
