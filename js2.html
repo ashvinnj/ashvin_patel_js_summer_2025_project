@@ -1,0 +1,529 @@
+<!-- Javascript project, class with professor: Sam Sultan (https://workshop.sps.nyu.edu/~sultans)
+ *  Class URL: https://workshop.sps.nyu.edu/~sultans/javascript/
+ *  Final project URL: https://workshop.sps.nyu.edu/~sultans/javascript/project.html
+ *  List of topics to cover in project and what is covered
+    -- DOM manipulation: The use of the document object model to change element content or style
+         > Error message show/hide
+         > Form clearing and resetting
+         > Budget display updates
+         > Email counter updates
+         > Quick Links content swapping
+         > Zoom Background image cycling
+         > used form.css file professor provided and expanded
+    -- The use of event listeners and event handlers to trigger processing  (Reference Page 21 of session 6)
+        > 1. Using an event listener within the HTML tag
+        > 2) Using an event listener of the HTMLElement object
+        > 3) Using the  addEventListener( ) more modern method
+    -- A form to collect data
+        > all elements on the name, email, phone#, select, radio button, select with multiple selection, radio button, check box, textarea
+          date (HTML5) style
+        > Simple one page idea with quick links
+        > submission of forms with action="https://workshop.sps.nyu.edu/~sultans/util/form/formTest.cgi
+    -- Form field validation prior to submission
+        > Extensively covered validate_form()
+    -- use of DHTML (session 6 extensive examples)
+        > cached zoom backgrounds cached images and naviation and navigation between quick links and survery form
+        > addlines (collect more than one email address and keep track of count of emails collected)
+    -- The use of client side cookies or Web Storage to save data
+    -- Access previously saved data and display on a different page
+
+
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer 2025 Travel Survey</title>    
+    <link rel="stylesheet" href="./forms.css">
+</head>
+<body>
+    <h3 style="font-size: 16px;">Summer 2025 Travel Survey</h3>
+
+    <form id="travelForm" method="GET" action="https://workshop.sps.nyu.edu/~sultans/util/form/formTest.cgi" onsubmit="return validateForm()" novalidate>
+        <fieldset id="survey-form">
+            <legend>Enter Information Below</legend>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="fullName">Enter full name...</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter full name..." required>
+                    <div class="error" id="nameError">Please enter your full name</div>
+                </div>
+                
+                <div class="col">
+                    <label for="email">Enter email address...</label>
+                    <div class="email-container">
+                        <div class="email-line">
+                            <input type="email" id="email" name="email" placeholder="Enter email address..." required>
+                        </div>
+                        <div class="error" id="emailError">Please enter a valid email address</div>
+                        <div id="additionalEmails"></div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 3px;">
+                        <button type="button" class="add-email-btn" onclick="addEmailLine()" id="addEmailBtn">Add Another Email</button>
+                        <div class="email-counter" id="emailCounter">1 of 3 email addresses</div>
+                    </div>
+                </div>
+                
+                <div class="col-narrow">
+                    <label for="phone">Phone number</label>
+                    <input type="tel" id="phone" name="phone" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
+                    <div class="error" id="phoneError">Format: 123-456-7890</div>
+                </div>
+
+                <!-- type= range below created slider-->
+                <div class="col-narrow">
+                    <label for="budget">Budget Range: $<span id="budgetDisplay">2500</span></label>
+                    <input type="range" id="budget" name="budget" min="500" max="10000" step="500" value="2500" oninput="updateBudgetDisplay()">
+                </div>
+                
+                <div class="col-narrow">
+                    <label for="travelFrequency">Travel Frequency (times/year)</label>
+                    <input type="number" id="travelFrequency" name="travelFrequency" min="0" max="99" placeholder="Optional">
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-wide">
+                    <label for="address">Enter address...</label>
+                    <textarea id="address" name="address" placeholder="Enter address..." required></textarea>
+                    <div class="error" id="addressError">Please enter your address</div>
+                </div>
+                
+                <div class="col-narrow">
+                    <fieldset class="compact-fieldset">
+                        <legend>Gender</legend>
+                        <div style="display: flex; gap: 15px; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" id="male" name="gender" value="male" required>
+                                <label for="male">Male</label>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 5px;">
+                                <input type="radio" id="female" name="gender" value="female" required>
+                                <label for="female">Female</label>
+                            </div>
+                        </div>
+                        <div class="error" id="genderError">Please select gender</div>
+                    </fieldset>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col">
+                    <label for="destination">Choose destination</label>
+                    <select id="destination" name="destination" required>
+                        <option value="">--Choose from below--</option>
+                        <option value="paris">Paris, France</option>
+                        <option value="tokyo">Tokyo, Japan</option>
+                        <option value="newyork">New York, USA</option>
+                        <option value="london">London, UK</option>
+                        <option value="sydney">Sydney, Australia</option>
+                        <option value="rome">Rome, Italy</option>
+                    </select>
+                    <div class="error" id="destinationError">Please select a destination</div>
+                </div>
+                
+                <div class="col-narrow">
+                    <label for="startDate">Travel Start Date</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                    <div class="error" id="dateError">Please select start date</div>
+                </div>
+                
+                <div class="col">
+                    <label for="activities">Preferred activities (multiple)</label>
+                    <select id="activities" name="activities" multiple>
+                        <option value="sightseeing">Sightseeing</option>
+                        <option value="museums">Museums</option>
+                        <option value="shopping">Shopping</option>
+                        <option value="nightlife">Nightlife</option>
+                        <option value="adventure">Adventure Sports</option>
+                        <option value="cultural">Cultural Events</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-wide">
+                    <fieldset class="compact-fieldset">
+                        <legend>Travel Preferences</legend>
+                        <div class="inline-group">
+                            <div>
+                                <input type="checkbox" id="flight" name="preferences" value="flight">
+                                <label for="flight">Flight</label>
+                            </div>
+                            
+                            <div>
+                                <input type="checkbox" id="hotel" name="preferences" value="hotel">
+                                <label for="hotel">Hotel</label>
+                            </div>
+                            
+                            <div>
+                                <input type="checkbox" id="meals" name="preferences" value="meals">
+                                <label for="meals">Meals</label>
+                            </div>
+                            
+                            <div>
+                                <input type="checkbox" id="tours" name="preferences" value="tours">
+                                <label for="tours">Tours</label>
+                            </div>
+                            
+                            <div>
+                                <input type="checkbox" id="insurance" name="preferences" value="insurance">
+                                <label for="insurance">Insurance</label>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                
+                <div class="col">
+                    <fieldset class="compact-fieldset" style="height: 140px;">
+                        <legend>Quick Links</legend>
+                        <div id="quick-links-content">
+                            <table class="quick-links-table">
+                                <tr>
+                                    <td class="quick-links-cell">
+                                        <a href="#" onclick="showCompanyInfo(); return false;">Company Info</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="quick-links-cell">
+                                        <a href="#" onclick="showWorkCalendar(); return false;">Company Calendar</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="quick-links-cell">
+                                        <a href="#" onclick="showSurveyPurpose(); return false;">Purpose of Travel Survey</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="quick-links-cell">
+                                        <a href="#" onclick="showZoomBackgrounds(); return false;">Company Zoom Meetings Backgrounds</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <!-- reference session 6 page 21  3 ways to add event listners -->
+            <div class="button-row">
+                <input type="submit" value="Submit" id="submitBtn">
+                <input type="reset" value="Clear" onclick="clearForm()">
+                <input type="button" value="Display Data" id="displayBtn">
+            </div>
+        </fieldset>
+    </form>
+
+    <script>
+        var emailLineCount = 1;
+        var MAX_EMAIL_LINES = 3;
+        var zoomBackgroundIndex = 1;
+        var maxZoomBackgrounds = 8;
+
+        function updateBudgetDisplay() {
+            var budget = document.getElementById('budget').value;
+            document.getElementById('budgetDisplay').textContent = budget;
+        }
+
+        function clearForm() {
+            document.getElementById('travelForm').reset();
+
+            // go thru .error class
+            var errorElements = document.querySelectorAll('.error');
+            for (var i = 0; i < errorElements.length; i++) {
+                errorElements[i].style.display = 'none';
+            }
+            
+            emailLineCount = 1;
+            document.getElementById('emailCounter').textContent = '1 of 3 email addresses';
+            document.getElementById('additionalEmails').innerHTML = '';
+            document.getElementById('addEmailBtn').style.display = 'inline-block';
+            
+            document.getElementById('budgetDisplay').textContent = '2500';
+            
+            showQuickLinks();
+        }
+
+        function handleSubmit(evt) {
+            evt.preventDefault();
+            
+            if (validateForm()) {
+                var form = document.getElementById('travelForm');
+                form.onsubmit = null;
+                form.submit();
+            }
+        }
+
+        window.onload = function() {
+            document.getElementById('displayBtn').onclick = displayFormData;
+            document.getElementById('submitBtn').addEventListener('click', handleSubmit, false);
+
+            // use typical phone# format --- handle not numeric input in the phone field
+            document.getElementById('phone').addEventListener('input', function() {
+                smartPhoneFormat(this);
+            });
+        };
+
+        function showCompanyInfo() {
+            var content = '<div style="font-size: 12px; padding: 8px; text-align: center;">';
+            content += '<strong> Garden State, New Jersey State Government</strong><br><br>';
+            content += 'Website: <a href="https://www.nj.gov" target="_blank">www.nj.gov</a><br><br>';
+            content += '<a href="#" onclick="showQuickLinks(); return false;" style="color: red; font-weight: bold;">← Back to Links</a>';
+            content += '</div>';
+            document.getElementById('quick-links-content').innerHTML = content;
+        }
+
+        function showWorkCalendar() {
+            var content = '<div style="font-size: 12px; padding: 8px; text-align: center;">';
+            content += '<strong>Work Calendar 2025</strong><br><br>';
+            content += '<a href="https://nj.gov/njbonds/treasury/omb/payroll/pdf/calendar2025.pdf" target="_blank">Download Company Calendar 2025</a><br><br>';
+            content += '<a href="#" onclick="showQuickLinks(); return false;" style="color: red; font-weight: bold;">← Back to Links</a>';
+            content += '</div>';
+            document.getElementById('quick-links-content').innerHTML = content;
+        }
+
+        function showSurveyPurpose() {
+            var content = '<div style="font-size: 12px; padding: 8px; text-align: left;">';
+            content += '<strong>Survey Purpose:</strong><br>';
+            content += '• Negotiate group travel discounts<br>';
+            content += '• Plan future travel benefits<br>';
+            content += '• Improve work-life balance programs<br>';
+            content += '• Design meaningful employee perks<br><br>';
+            content += '<a href="#" onclick="showQuickLinks(); return false;" style="color: red; font-weight: bold;">← Back to Links</a>';
+            content += '</div>';
+            document.getElementById('quick-links-content').innerHTML = content;
+        }
+
+        function showZoomBackgrounds() {
+            zoomBackgroundIndex = 1;
+            var content = '<div style="font-size: 12px; padding: 5px; text-align: center;">';
+            content += '<strong>Zoom Meetings Background (right click image and save) <span id="zoomNum">1</span> of 8</strong><br>';
+            content += '<img id="zoomImg" src="./1.gif" alt="Zoom Background" style="max-width: 100%; max-height: 80px; border: 1px solid #333; margin: 5px 0;"><br>';
+            content += '<a href="#" onclick="nextZoomBG(); return false;" style="color: blue; font-weight: bold; margin-right: 10px;">NEXT →</a>';
+            content += '<a href="#" onclick="showQuickLinks(); return false;" style="color: red; font-weight: bold;">← Back</a>';
+            content += '</div>';
+            document.getElementById('quick-links-content').innerHTML = content;
+        }
+
+        function nextZoomBG() {
+            zoomBackgroundIndex++;
+            if (zoomBackgroundIndex > maxZoomBackgrounds) {
+                zoomBackgroundIndex = 1;
+            }
+            document.getElementById('zoomImg').src = './' + zoomBackgroundIndex + '.gif';
+            document.getElementById('zoomNum').textContent = zoomBackgroundIndex;
+        }
+
+        function showQuickLinks() {
+            var content = '<table class="quick-links-table">';
+            content += '<tr><td class="quick-links-cell"><a href="#" onclick="showCompanyInfo(); return false;">Company Info</a></td></tr>';
+            content += '<tr><td class="quick-links-cell"><a href="#" onclick="showWorkCalendar(); return false;">Work Calendar</a></td></tr>';
+            content += '<tr><td class="quick-links-cell"><a href="#" onclick="showSurveyPurpose(); return false;">Survey Purpose</a></td></tr>';
+            content += '<tr><td class="quick-links-cell"><a href="#" onclick="showZoomBackgrounds(); return false;">Zoom Backgrounds</a></td></tr>';
+            content += '</table>';
+            document.getElementById('quick-links-content').innerHTML = content;
+        }
+
+        // reference class excercise addlines
+        function addEmailLine() {
+            if (emailLineCount >= MAX_EMAIL_LINES) {
+                alert('Maximum 3 email addresses allowed');
+                return;
+            }
+            
+            emailLineCount++;
+            var additionalEmails = document.getElementById('additionalEmails');
+            
+            var newEmailLine = document.createElement('div');
+            newEmailLine.className = 'email-line';
+            newEmailLine.id = 'emailLine' + emailLineCount;
+            
+            var emailInput = document.createElement('input');
+            emailInput.type = 'email';
+            emailInput.name = 'email' + emailLineCount;
+            emailInput.id = 'email' + emailLineCount;
+            emailInput.placeholder = 'Additional email address...';
+            
+            var deleteBtn = document.createElement('button');
+            deleteBtn.type = 'button';
+            deleteBtn.className = 'delete-btn';
+            deleteBtn.innerHTML = 'X';
+            deleteBtn.onclick = function() { deleteEmailLine(emailLineCount); };
+            
+            newEmailLine.appendChild(emailInput);
+            newEmailLine.appendChild(deleteBtn);
+            additionalEmails.appendChild(newEmailLine);
+            
+            var errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.id = 'emailError' + emailLineCount;
+            errorDiv.textContent = 'Please enter a valid email address';
+            additionalEmails.appendChild(errorDiv);
+            
+            updateEmailCounter();
+            
+            if (emailLineCount >= MAX_EMAIL_LINES) {
+                document.getElementById('addEmailBtn').style.display = 'none';
+            }
+        }
+
+        function deleteEmailLine(lineId) {
+            var emailLine = document.getElementById('emailLine' + lineId);
+            var errorDiv = document.getElementById('emailError' + lineId);
+            if (emailLine) {
+                emailLine.remove();
+                if (errorDiv) errorDiv.remove();
+                emailLineCount--;
+                updateEmailCounter();
+                
+                if (emailLineCount < MAX_EMAIL_LINES) {
+                    document.getElementById('addEmailBtn').style.display = 'inline-block';
+                }
+            }
+        }
+
+        function updateEmailCounter() {
+            var currentCount = emailLineCount;
+            document.getElementById('emailCounter').textContent = currentCount + ' of ' + MAX_EMAIL_LINES + ' email addresses';
+        }
+
+        function validateForm() {
+            var isValid = true;
+            var errors = [];
+            
+            var errorElements = document.querySelectorAll('.error');
+            for (var i = 0; i < errorElements.length; i++) {
+                errorElements[i].style.display = 'none';
+            }
+
+            var fullName = document.getElementById('fullName').value.trim();
+            if (!fullName) {
+                document.getElementById('nameError').style.display = 'block';
+                errors.push('Full name is required');
+                isValid = false;
+            }
+            
+            var email = document.getElementById('email').value.trim();
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('emailError').style.display = 'block';
+                errors.push('Valid primary email is required');
+                isValid = false;
+            }
+            
+            for (var i = 2; i <= MAX_EMAIL_LINES; i++) {
+                var additionalEmail = document.getElementById('email' + i);
+                var errorDiv = document.getElementById('emailError' + i);
+                if (additionalEmail && errorDiv) {
+                    var emailValue = additionalEmail.value.trim();
+                    if (emailValue && !emailRegex.test(emailValue)) {
+                        errorDiv.style.display = 'block';
+                        errors.push('Email address ' + i + ' format is invalid');
+                        isValid = false;
+                    }
+                }
+            }
+            
+            var phone = document.getElementById('phone').value.trim();
+            var phoneRegex = /^[0-9]{3}-[0-9]{3}-[0-9]{4}$/;
+            if (!phone || !phoneRegex.test(phone)) {
+                document.getElementById('phoneError').style.display = 'block';
+                errors.push('Phone number must be in format: 123-456-7890');
+                isValid = false;
+            }
+            
+            var address = document.getElementById('address').value.trim();
+            if (!address) {
+                document.getElementById('addressError').style.display = 'block';
+                errors.push('Address is required');
+                isValid = false;
+            }
+            
+            var gender = document.querySelector('input[name="gender"]:checked');
+            if (!gender) {
+                document.getElementById('genderError').style.display = 'block';
+                errors.push('Please select your gender');
+                isValid = false;
+            }
+            
+            var destination = document.getElementById('destination').value;
+            if (!destination) {
+                document.getElementById('destinationError').style.display = 'block';
+                errors.push('Please select a destination');
+                isValid = false;
+            }
+            
+            var startDate = document.getElementById('startDate').value;
+            if (!startDate) {
+                document.getElementById('dateError').style.display = 'block';
+                errors.push('Please select start date');
+                isValid = false;
+            }
+            
+            if (errors.length > 0) {
+                alert('Form Validation Errors:\n\n' + errors.join('\n'));
+            }
+            
+            return isValid;
+        }
+
+        function displayFormData() {
+            var formData = new FormData(document.getElementById('travelForm'));
+            var display = '=== TRAVEL REGISTRATION FORM DATA ===\n\n';
+            
+            display += 'Full Name: ' + (formData.get('fullName') || '(not filled)') + '\n';
+            
+            display += 'Primary Email: ' + (formData.get('email') || '(not filled)') + '\n';
+            for (var i = 2; i <= MAX_EMAIL_LINES; i++) {
+                var emailField = document.getElementById('email' + i);
+                if (emailField && emailField.value.trim()) {
+                    display += 'Email ' + i + ': ' + emailField.value.trim() + '\n';
+                }
+            }
+            
+            display += 'Phone: ' + (formData.get('phone') || '(not filled)') + '\n';
+            display += 'Address: ' + (formData.get('address') || '(not filled)') + '\n';
+            display += 'Gender: ' + (formData.get('gender') || '(not selected)') + '\n';
+            display += 'Destination: ' + (formData.get('destination') || '(not selected)') + '\n';
+            display += 'Start Date: ' + (formData.get('startDate') || '(not selected)') + '\n';
+            display += 'Budget: $' + document.getElementById('budget').value + '\n';
+            display += 'Travel Frequency: ' + (formData.get('travelFrequency') || '(not specified)') + ' times/year\n';
+            
+            var preferences = [];
+            var prefElements = document.querySelectorAll('input[name="preferences"]:checked');
+            for (var i = 0; i < prefElements.length; i++) {
+                preferences.push(prefElements[i].value);
+            }
+            display += 'Travel Preferences: ' + (preferences.length > 0 ? preferences.join(', ') : '(none selected)') + '\n';
+            
+            var activities = [];
+            var actElements = document.querySelectorAll('#activities option:checked');
+            for (var i = 0; i < actElements.length; i++) {
+                activities.push(actElements[i].value);
+            }
+            display += 'Preferred Activities: ' + (activities.length > 0 ? activities.join(', ') : '(none selected)') + '\n';
+            
+            alert(display);
+        }
+
+        function smartPhoneFormat(input) {
+            let value = input.value.replace(/\D/g, '');  // regex to get rid of non digits
+            value = value.slice(0, 10);
+
+            if (value.length >= 6) {
+                input.value = value.slice(0, 3) + '-' + value.slice(3, 6) + '-' + value.slice(6);
+            } else if (value.length >= 3) {
+                input.value = value.slice(0, 3) + '-' + value.slice(3);
+            } else {
+                input.value = value;
+            }
+
+            if (value.length === 10) {
+                document.getElementById('phoneError').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
